@@ -13,7 +13,6 @@ from os import getenv
 class Pusheen:
     def __init__(self) -> None:
         self.updater = Updater(getenv("BOT_TOKEN"))
-        self.group_id = f"-{getenv('BOT_GROUP')}"
         self.config = getenv("BOT_CONFIG")
         with open(self.config, mode="w+") as c:
             self.stickers = c.read().split("\n")
