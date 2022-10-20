@@ -14,9 +14,12 @@ class Pusheen:
     def __init__(self) -> None:
         self.updater = Updater(getenv("BOT_TOKEN"))
         self.config = getenv("BOT_CONFIG")
-        with open(self.config, mode="r") as c:
-            self.stickers = c.read().split("\n")
-            c.close()
+        try:
+            with open(self.config, mode="r") as c:
+                self.stickers = c.read().split("\n")
+                c.close()
+        except FileNotFoundError:
+            self.stickers = []
 
         self.updater.dispatcher.add_handler(
             MessageHandler(filters.Filters.all, self.intercept)
@@ -25,7 +28,6 @@ class Pusheen:
         self.updater.start_polling()
 
     def sync_config(self):
-        self.stickers = [*set(self.stickers)]
         with open(self.config, mode="w") as c:
             c.write("\n".join(self.stickers))
             c.close()
@@ -35,13 +37,9 @@ class Pusheen:
         if message.text and message.from_user in [
             admin.user for admin in message.chat.get_administrators()
         ]:
-            if message.text.startswith("add"):
-                self.stickers.append(message.text.split()[1])
-            elif message.text.startswith("del"):
-                self.stickers.remove(message.text.split()[1])
-            elif message.text.startswith("list"):
+            if message.text == ("?"):
                 message.reply_markdown_v2(
-                    "The available stickers:\n"
+                    "The available stickers:\n\n"
                     + "\n".join(
                         [
                             f"[{sticker}](t.me/addstickers/{sticker})"
@@ -49,7 +47,13 @@ class Pusheen:
                         ]
                     )
                 )
-            self.sync_config()
+            else:
+                for op in message.text.split():
+                    if op.startswith("+") and op.lstrip("+") not in self.stickers:
+                        self.stickers.append(op.lstrip("+"))
+                    elif op.startswith("-") and op.lstrip("-") in self.stickers:
+                        self.stickers.remove(op.lstrip("-"))
+                self.sync_config()
 
         if not (message.sticker and message.sticker.set_name in self.stickers):
             message.delete()
