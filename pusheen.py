@@ -14,8 +14,9 @@ class Pusheen:
     def __init__(self) -> None:
         self.updater = Updater(getenv("BOT_TOKEN"))
         self.config = getenv("BOT_CONFIG")
-        with open(self.config, mode="w+") as c:
+        with open(self.config, mode="r") as c:
             self.stickers = c.read().split("\n")
+            c.close()
 
         self.updater.dispatcher.add_handler(
             MessageHandler(filters.Filters.all, self.intercept)
@@ -31,11 +32,9 @@ class Pusheen:
 
     def intercept(self, update: Update, context: CallbackContext):
         message = update.message
-        if (
-            message.from_user
-            in [admin.user for admin in message.chat.get_administrators()]
-            and message.text
-        ):
+        if message.text and message.from_user in [
+            admin.user for admin in message.chat.get_administrators()
+        ]:
             if message.text.startswith("add"):
                 self.stickers.append(message.text.split()[1])
             elif message.text.startswith("del"):
