@@ -41,8 +41,14 @@ class Pusheen:
             elif message.text.startswith("del"):
                 self.stickers.remove(message.text.split()[1])
             elif message.text.startswith("list"):
-                message.reply_text(
-                    "The available stickers:\n" + "\n".join(self.stickers)
+                message.reply_markdown_v2(
+                    "The available stickers:\n"
+                    + "\n".join(
+                        [
+                            f"[{sticker}](t.me/addstickers/{sticker})"
+                            for sticker in self.stickers
+                        ]
+                    )
                 )
             self.sync_config()
 
